@@ -243,7 +243,7 @@ $result_get_products = $conn->query($get_products);
         $('.returning-customers-container').load(baseUrl + '/views/shop/partial-show-customers.php');
 
         $('.shop-item').each(function() {
-            var item_count = $(this).find('span.shop-item-count');
+            var item_count = $(this).find('.shop-item-count');
             if (parseInt(item_count.text()) == 0) {
                 item_count.closest('.shop-item').addClass('not-available');
                 item_count.closest('.shop-item').removeClass('available');
@@ -346,7 +346,7 @@ $result_get_products = $conn->query($get_products);
             item: item
         });
         //        console.log(JSON.stringify(cart));
-        var visual_id_block = $('.visual-id-' + item_id);
+        var visual_id_block = $('tr#' + item_id);
         if (visual_id_block.hasClass('not-available')) {
 
         } else {
@@ -354,10 +354,11 @@ $result_get_products = $conn->query($get_products);
         }
         //        focus_to_search();
     }
-    var single_count = 1,
-        single_total;
+    var single_count = 1
+    var single_total
 
     function addItem(item) {
+        let cartItem = $('#' + item.id);
         $('.shop-container').addClass('after');
         $('.invoice-container').addClass('after');
 
@@ -374,7 +375,7 @@ $result_get_products = $conn->query($get_products);
 `;
         $('table.invoice-cart-table tbody').append(append_item);
 
-        var cartItem_count = $(event.target).closest('div#' + item.id).find('h5.shop-item-top-title > span.shop-item-count').text();
+        var cartItem_count = $(event.target).closest('tr#' + item.id).find('.shop-item-count').text();
         cartItem_count = parseInt(cartItem_count);
         var item_tr = $('table.invoice-cart-table tbody').find('tr#' + item.id);
         if (item_tr.length > 1) {
@@ -414,28 +415,27 @@ $result_get_products = $conn->query($get_products);
                 var changing_count = parseInt($(this).val());
                 var hidden_count = parseInt(item.hidden_count);
                 cartItem_count = hidden_count - changing_count;
-                $('.visual-id-' + item.id).find('span.shop-item-count').text(cartItem_count);
+                cartItem.find('.shop-item-count').text(cartItem_count);
                 //update count onchange
                 if (changing_count == hidden_count) {
                     out_of_stock();
                 } else if (changing_count > hidden_count) {
                     out_of_stock();
                     $(this).val(hidden_count);
-                    $('.visual-id-' + item.id).find('span.shop-item-count').text(hidden_count);
+                    cartItem.find('.shop-item-count').text(hidden_count);
                 } else {
-                    $('.visual-id-' + item.id).removeClass('not-available');
-                    $('.visual-id-' + item.id).addClass('available');
+                    cartItem.addClass('available');
                 }
 
                 function out_of_stock() {
-                    $('.visual-id-' + item.id).removeClass('available');
-                    $('.visual-id-' + item.id).addClass('not-available');
+                    cartItem.addClass('out-of-stock');
+                    cartItem.find('.shop-item-count').html('<span class="out-of-stock-label">Out of stock</span>');
                 }
 
                 calc_warn();
             });
         }
-        $('.visual-id-' + item.id).find('span.shop-item-count').text(cartItem_count);
+        cartItem.find('.shop-item-count').text(cartItem_count);
         item_tr.find('input.invoice-cart-single-count').trigger('change');
 
         var go = "";
@@ -462,10 +462,10 @@ $result_get_products = $conn->query($get_products);
         remove_item_btn.closest('tr').addClass('to-remove');
         var remove_id = remove_item_btn.closest('tr').attr('id');
 
-        var remove_hidden_count = $('.visual-id-' + remove_id).find('span.hidden-count.hide').text();
-        $('.visual-id-' + remove_id).find('span.shop-item-count').text(remove_hidden_count);
-        $('.visual-id-' + remove_id).removeClass('not-available');
-        $('.visual-id-' + remove_id).addClass('available');
+        var remove_hidden_count = $('tr#' + remove_id).find('span.hidden-count.hide').text();
+        $('tr#' + remove_id).find('.shop-item-count').text(remove_hidden_count);
+        $('tr#' + remove_id).removeClass('not-available');
+        $('tr#' + remove_id).addClass('available');
 
         focus_to_search();
 
@@ -540,8 +540,8 @@ $result_get_products = $conn->query($get_products);
         });
         $('.shop-item').each(function() {
             var hidden_count = $(this).find('span.hidden-count.hide').text();
-            $(this).find('span.shop-item-count').text(hidden_count);
-            var visible_count = parseInt($(this).find('span.shop-item-count').text());
+            $(this).find('.shop-item-count').text(hidden_count);
+            var visible_count = parseInt($(this).find('.shop-item-count').text());
             if (visible_count < 1) {
                 $(this).addClass('not-available');
                 $(this).removeClass('available');
@@ -745,7 +745,7 @@ $result_get_products = $conn->query($get_products);
             </tr>
             <tr>
               <td colspan="3">Total price</td>
-              <td style="text-align:right;">Rs.<span id="total_price">` + total_price + `</span></td>
+              <td style="text-align:right;">Rs.<span id="total_price">` + total_price.toFixed(2) + `</span></td>
             </tr>
             <tr>
               <td colspan="3">Discount</td>
@@ -1152,10 +1152,10 @@ $result_get_products = $conn->query($get_products);
                             //                            var retreived_item = $(this);
                             var retreived_item_id = $(this).attr('id');
                             var current_item_count = $(this).find('input.invoice-cart-single-count').val();
-                            var visual_item_count = $('.visual-id-' + retreived_item_id).find('span.shop-item-count').text();
+                            var visual_item_count = $('tr#' + retreived_item_id).find('.shop-item-count').text();
                             var visual_item_count_after = parseInt(visual_item_count) - parseInt(current_item_count);
                             //                            console.log(visual_item_count_after);
-                            $('.visual-id-' + retreived_item_id).find('span.shop-item-count').text(visual_item_count_after);
+                            $('tr#' + retreived_item_id).find('.shop-item-count').text(visual_item_count_after);
                             calc_warn();
                         });
                     }, 500);
@@ -1180,8 +1180,8 @@ $result_get_products = $conn->query($get_products);
             var single_total = (parseInt(invoice_cart_single_price) * parseInt(calc_qty)) - parseInt(discount_field_val);
             $(event.target).closest('tr#' + tr_id).find('.invoice-cart-single-total > span').text(single_total);
 
-            var visual_id_count = $('.visual-id-' + tr_id).find('span.shop-item-count');
-            var visual_id_hidden_count = $('.visual-id-' + tr_id).find('span.hidden-count');
+            var visual_id_count = $('tr#' + tr_id).find('.shop-item-count');
+            var visual_id_hidden_count = $('tr#' + tr_id).find('span.hidden-count');
             var visual_id_count_new = parseInt(visual_id_hidden_count.text()) - parseInt(calc_qty);
             visual_id_count.text(visual_id_count_new);
             calc_warn();

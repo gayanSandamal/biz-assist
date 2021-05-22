@@ -137,7 +137,7 @@ function get_offer_select($conn) {
 
 //get_available_products
 function get_available_products($conn, $branch_id) {
-    $get_available_products = "SELECT product_id, product_name, product_model_no FROM product WHERE branch_id = '$branch_id'";
+    $get_available_products = "SELECT product_id, product_name, product_model_no FROM product WHERE branch_id = '$branch_id' ORDER BY product_id DESC";
     $result_get_available_products = $conn->query($get_available_products);
     if ($result_get_available_products->num_rows > 0) {
         while ($row = $result_get_available_products->fetch_assoc()) {

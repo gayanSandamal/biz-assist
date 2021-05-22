@@ -514,7 +514,6 @@ h4.title > .title-text > button:hover {
 }
 .image-col {
     position: relative;
-    margin-top: -50px;
     margin-bottom: 12px;
 }
 input.form-control.calc.loss {

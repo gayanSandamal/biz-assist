@@ -110,7 +110,7 @@ $result_view_sales = $conn->query($view_sales);
                                                     </th>
                                                     <td class="product-id"><span><?php echo ($numOrder++); ?></span></td>
                                                     <!--====================================================-->
-                                                    <td class="product-name-td"><div class="product-name"><a href="#" class="sale-detail" onclick="sale_details(<?php echo $row["invoice_id"]; ?>)"><?php echo $row["invoice_ref_no"]; ?></a></div></td>
+                                                    <td class="product-name-td"><div class="product-name"><a href="#" class="sale-detail" onclick="sale_details(<?php echo $row["invoice_id"]; ?>, <?php echo $row["invoice_ref_no"]; ?>)"><?php echo $row["invoice_ref_no"]; ?></a></div></td>
                                                     <td class="product-name-td"><div class="product-name" style="white-space: nowrap;"><?php echo $row["invoice_time"]; ?></div></td>
                                                     <td class="product-name-td"><div class="product-name"><?php echo $row["user_id"]; ?></div></td>
                                                     <td class="product-name-td"><div class="product-name"><?php echo $row["first_name"]; ?></div></td>
@@ -245,7 +245,7 @@ $result_view_sales = $conn->query($view_sales);
         }
     });
 
-    function sale_details(invoice_id) {
+    function sale_details(invoice_id, invoice_ref) {
         event.preventDefault();
 
         var sale_detail_container = `
@@ -260,13 +260,13 @@ $result_view_sales = $conn->query($view_sales);
         `;
 
         var del_id = invoice_id;
+        var ref = invoice_ref;
         $.ajax({
             type: 'GET',
             url: 'detail.php',
-            data: {del_id: del_id},
+            data: {del_id: del_id, ref: ref},
             success: function (data) {
-                console.log(data);
-                var detail_page_url = 'detail.php?del_id=' + del_id;
+                var detail_page_url = 'detail.php?del_id=' + del_id + '&ref=' + ref;
 
                 $('body').append(sale_detail_container);
                 $('.sale_detail_container_loader').load(detail_page_url);

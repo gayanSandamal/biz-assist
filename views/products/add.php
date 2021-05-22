@@ -37,7 +37,7 @@ if ($result_get_branch->num_rows > 0) {
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header" data-background-color="purple">
-                            <h4 class="title"><a href="<?php echo $baseUrl; ?>/views/products/" class="back-btn"><i class="material-icons">arrow_back</i></a>Add Brands</h4>
+                            <h4 class="title"><a href="<?php echo $baseUrl; ?>/views/products/" class="back-btn"><i class="material-icons">arrow_back</i></a>Add Products</h4>
                             <!--<p class="category">Complete your profile</p>-->
                         </div>
                         <div class="card-content">
@@ -46,7 +46,7 @@ if ($result_get_branch->num_rows > 0) {
                                 <input type="hidden" name="branch_id" value="<?php echo $branch_id; ?>"/>
                                 <div class="col-md-4 col-sm-6">
                                     <div class="form-group label-floating">
-                                        <label class="control-label">Brand name*</label>
+                                        <label class="control-label">Product name*</label>
                                         <input type="text" class="form-control name-required required clear-after"  name="name" id="from-display-name" onkeyup="show_matching_cats()">
                                     </div>
                                 </div>
@@ -152,13 +152,13 @@ if ($result_get_branch->num_rows > 0) {
                                 <div class="col-md-4 col-sm-6">
                                     <div class="form-group label-floating">
                                         <label class="control-label">Discount value(Rs. or %)</label>
-                                        <input type="text" class="form-control number calc clear-after" id="offer_amount" name="offer_amount">
+                                        <input type="text" class="form-control number calc clear-after" value="0" id="offer_amount" name="offer_amount">
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
                                     <div class="form-group label-floating">
                                         <label class="control-label">Discounted price(Rs.)</label>
-                                        <input type="text" id="discounted" class="form-control number clear-after" name="discounted" value="">
+                                        <input type="text" id="discounted" class="form-control number clear-after" value="0" name="discounted" value="">
                                     </div>
                                 </div>
 
@@ -175,7 +175,7 @@ if ($result_get_branch->num_rows > 0) {
                                         <input type="text" class="form-control clear-after" name="desc">
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary pull-right add-product-button" id="add-product-button">Add brand</button>
+                                <button type="submit" class="btn btn-primary pull-right add-product-button" id="add-product-button">Add Product</button>
                                 <div class="clearfix">
                                 </div>
                             </form>
@@ -235,12 +235,18 @@ if ($result_get_branch->num_rows > 0) {
 <?php include_once '../../inc/footer.php'; ?>
 
 <script>
-    $(function () {
-        $("#exp-date").datepicker({
-            dateFormat: "yy-mm-dd"
-        });
-    });
-
+    var buy = 0
+    var offer_amount = 0
+    var expenses = 0
+    var search_filter_tax
+    var search_filter_offer_type
+    var buy_init
+    var offer_amount_init
+    var expenses_init
+    var tax_val
+    var tax_val_init
+    var offer_type
+    var offer_type_init
     $(document).ready(function () {
         $("#availability-checkbox").on('change', function () {
             if ($("#availability-checkbox").prop('checked') == true) {
@@ -256,255 +262,73 @@ if ($result_get_branch->num_rows > 0) {
                 $('#availability-checkbox').attr('checked', true);
             }
         });
-
-        $('#search-filter-cat').select2({
-            tags: true
-        });
-        $('#search-filter-brand').select2({
-            tags: true
-        });
-        $('#search-filter-supplier').select2({
-//            tags: true
-        });
+        $('#search-filter-cat').select2({tags: true});
+        $('#search-filter-brand').select2({});
+        $('#search-filter-supplier').select2({});
         $('#search-filter-condition').select2();
-        $('#search-filter-tax').select2({
-//            tags: true
-        });
+        $('#search-filter-tax').select2({});
         $('#search-filter-offer-type').select2();
         $('input#from-display-name').focus();
         $('#category-ul-matching').load(baseUrl + '/views/products/loop-products.php');
-//        refresh_cat_list();
-    });
-    $(function () {
+        $("#exp-date").datepicker({
+            dateFormat: "yy-mm-dd"
+        });
         $("#exp").datepicker({
             dateFormat: "yy-mm-dd"
         });
-    });
-    function readURL(input) {
+        $("#imgInp").change(function () {
+            readURL(this);
+        });
+        var go = "";
+        $('input.number').on('keyup', function () {
+            var currentNumberElement = $(this);
+            var number = $(this).val();
+            var cnumber = parseFloat(number);
 
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                $('#blah').attr('src', e.target.result);
-                $('#blah').hide();
-                $('#blah').fadeIn(650);
-
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-
-    }
-    $("#imgInp").change(function () {
-        readURL(this);
-    });
-
-    function show_matching_cats() {
-        var input, filter, ul, li, a, i;
-        input = document.getElementById("from-display-name");
-        filter = input.value.toUpperCase();
-        ul = document.getElementById("category-ul-matching");
-        li = ul.getElementsByTagName("li");
-        for (i = 0; i < li.length; i++) {
-            a = li[i].getElementsByTagName("a")[0];
-            if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
-                li[i].style.display = "";
+            if (/[0-9]/.test(cnumber)) {
+                go = 1;
             } else {
-                li[i].style.display = "none";
-
-            }
-        }
-
-        /* Get input value on change */
-        var inputVal = $(event.target).val();
-        var search_name_details = {
-            search_name: inputVal
-        };
-        var search_name_details_obj = JSON.stringify(search_name_details);
-//        console.log(inputVal);
-        if (inputVal.length) {
-            $.post('get_matching_img.php', {search_name_detailsJsonData: search_name_details_obj}, function (response) {
-//                console.log(response);
-                $('#image-suggest-loader').empty();
-                $('#image-suggest-loader').html(response);
-            });
-        } else {
-            $('#image-suggest-loader').empty();
-        }
-    }
-
-    function successfully_added() {
-        var color = 'green';
-        var icon = 'check';
-        var product_name = $('#from-display-name').val();
-        var msg = product_name + ' is successfully added';
-        push_notificatoin(color, icon, msg);
-        $('input.clear-after').val("");
-        $('input#imgInp').val("");
-        $('img#blah').attr('src', baseUrl + '/assets/img/placeholder-image.png');
-        $('.required').removeClass('validation-error');
-    }
-    function validation_error() {
-        var color = 'red';
-        var icon = 'times';
-        var msg = 'Please fill the required fields and submit';
-        push_notificatoin(color, icon, msg);
-        $('.required').addClass('validation-error');
-    }
-    function dupicate_validation_error() {
-        var color = 'red';
-        var icon = 'times';
-        var msg = 'Add a different product';
-        push_notificatoin(color, icon, msg);
-        $('.required').addClass('validation-error');
-    }
-    function large_file_error() {
-        var color = 'red';
-        var icon = 'times';
-        var msg = 'Image is too large';
-        push_notificatoin(color, icon, msg);
-    }
-
-    var go = "";
-    $('input.number').on('keyup', function () {
-        var currentNumberElement = $(this);
-        var number = $(this).val();
-        var cnumber = parseFloat(number);
-
-        if (/[0-9]/.test(cnumber)) {
-            go = 1;
-        } else {
-            go = 0;
-            var color = 'red';
-            var icon = 'times';
-            var msg = 'Numbers only';
-            push_notificatoin(color, icon, msg);
-            currentNumberElement.addClass('validation-error');
-            currentNumberElement.val("");
-        }
-    });
-
-
-    $('#from-display-name').on('keyup', function () {
-        var from_display_name = $(this).val();
-        $('#product_name_appeared').val(from_display_name);
-    });
-
-    $('#add-product-button').on('click', function (e) {
-        e.preventDefault();
-        if (document.getElementById("imgInp").files.length == 0) {
-            productUpload();
-        } else {
-            imgUpload();
-        }
-    });
-
-    function productUpload() {
-        var name_required = $('.name-required');
-        var buy_required = $('.buy-required');
-        var sell_required = $('.sell-required');
-        var typed_cat_name = $('#from-display-name').val();
-        var date_required = $('.date-required');
-
-        if ((name_required.val().length > 0) && (sell_required.val().length > 0) && (buy_required.val().length > 0) && (date_required.val().trim() !== '')) {
-//            if ($('#category-ul-matching li a:contains("' + typed_cat_name + '")').length) {
-//                dupicate_validation_error();
-//            } else {
-//                start_load();
-            $.ajax({
-                type: 'get',
-                url: 'add-products-call.php',
-                data: $('form').serialize(),
-                success: function (data) {
-                    console.log(data);
-                    stop_upload();
-                    successfully_added();
-                    get_microtime();
-                    $('#category-ul-matching').load(baseUrl + '/views/products/loop-products.php');
-                }
-            });
-            $('input#from-display-name').focus();
-            $('ul#category-ul-matching li').attr('style', '');
-//            }
-        } else {
-            validation_error();
-        }
-    }
-
-    function imgUpload() {
-        var form = $('#fileUploadForm')[0];
-        var data = new FormData(form);
-        data.append("CustomField", "This is some extra data, testing");
-        $("#btnSubmit").prop("disabled", true);
-        start_upload();
-        $.ajax({
-            type: "POST",
-            enctype: 'multipart/form-data',
-            url: baseUrl + "/controllers/image_upload.php",
-            data: data,
-            processData: false,
-            contentType: false,
-            cache: false,
-            timeout: 60000,
-            success: function (data) {
-//                console.log("SUCCESS : ", data);
-                $.ajax({
-                    type: "POST",
-                    url: "last_img_id.php",
-                    data: data,
-                    success: function (data)
-                    {
-                        var last_img_id = data;
-                        $('input#last_img_id').val($.trim(last_img_id));
-                        $.ajax({
-                            type: "POST",
-                            url: "../../uploads/imgOptimizer.php",
-                            data: data,
-                            success: function (data)
-                            {
-//                                console.log(data);
-                                productUpload();
-                            }
-                        });
-//                        console.log($.trim(data));
-//                        productUpload();
-                    }
-                });
-            },
-            error: function () {
-//                console.log("ERROR : ", e);
-                alert("Check your internet connection. Maybe it's too slow");
-                stop_upload();
+                go = 0;
+                var color = 'red';
+                var icon = 'times';
+                var msg = 'Numbers only';
+                push_notificatoin(color, icon, msg);
+                currentNumberElement.addClass('validation-error');
+                currentNumberElement.val("");
             }
         });
-    }
-//    image upload ends
+        $('#from-display-name').on('keyup', function () {
+            var from_display_name = $(this).val();
+            $('#product_name_appeared').val(from_display_name);
+        });
+        $('#add-product-button').on('click', function (e) {
+            e.preventDefault();
+            if (document.getElementById("imgInp").files.length == 0) {
+                productUpload();
+            } else {
+                imgUpload();
+            }
+        });
+        $('#imgInp').on('change', function () {
+            if (this.files[0].size < 5000000) {
 
-//check image size
-    $('#imgInp').on('change', function () {
-//        alert();
-        if (this.files[0].size < 5000000) {
+            } else {
+                large_file_error();
+                $('#imgInp').val("");
+                setTimeout(function () {
+                    $('#blah').attr('src', baseUrl + '/assets/img/placeholder-image.png');
+                }, 651);
+            }
+        });
+        buy = $('#buy');
+        offer_amount = $('#offer_amount');
+        expenses = $('#expenses');
+        search_filter_tax = $('#search-filter-tax');
+        search_filter_offer_type = $('#search-filter-offer-type');
 
-        } else {
-            large_file_error();
-            $('#imgInp').val("");
-            setTimeout(function () {
-                $('#blah').attr('src', baseUrl + '/assets/img/placeholder-image.png');
-            }, 651);
-        }
-    });
-//check image size
-
-//selling price
-    $(document).ready(function () {
-        var buy = $('#buy');
-        var offer_amount = $('#offer_amount');
-        var expenses = $('#expenses');
-        var search_filter_tax = $('#search-filter-tax');
-        var search_filter_offer_type = $('#search-filter-offer-type');
-
-        var buy_init = buy.val();
-        var offer_amount_init = offer_amount.val();
-        var expenses_init = expenses.val();
+        buy_init = buy.val();
+        offer_amount_init = offer_amount.val();
+        expenses_init = expenses.val();
 
         if (offer_amount_init == '' || offer_amount_init == '0') {
             offer_amount_init = 0;
@@ -512,16 +336,16 @@ if ($result_get_branch->num_rows > 0) {
             offer_amount_init;
         }
 
-        var tax_val = search_filter_tax.select2('data');
-        var tax_val_init = (tax_val[0].text).replace('%', '');
+        tax_val = search_filter_tax.select2('data');
+        tax_val_init = (tax_val[0].text).replace('%', '');
         if (tax_val_init == '0.00') {
             tax_val_init = 1;
         } else {
             tax_val_init;
         }
 
-        var offer_type = search_filter_offer_type.select2('data');
-        var offer_type_init = (offer_type[0].id).replace('%', '');
+        offer_type = search_filter_offer_type.select2('data');
+        offer_type_init = (offer_type[0].id).replace('%', '');
 
         buy.on('keyup change', function () {
             var buy_new = $(this).val();
@@ -562,7 +386,6 @@ if ($result_get_branch->num_rows > 0) {
                 expenses.val(margin_val);
                 $('input#expenses').removeClass('loss');
             } else if (parseFloat(sell_new_val) < parseFloat(buy_val)) {
-//                $(this).val(buy_init);
                 margin_val = parseFloat(sell_new_val) - parseFloat(buy_val);
                 expenses.val(margin_val);
                 $('input#expenses').addClass('loss');
@@ -574,7 +397,6 @@ if ($result_get_branch->num_rows > 0) {
             expenses.find('.form-group').addClass('is-empty');
             discount();
         });
-
         search_filter_tax.on('change', function () {
             var tax_val = $(this).select2('data');
             var tax_val_new = (tax_val[0].text).replace('%', '');
@@ -594,74 +416,209 @@ if ($result_get_branch->num_rows > 0) {
             sell();
             discount();
         });
-
-        function sell() {
-            var buy_init_store = buy.val();
-            if (expenses_init == 0) {
-                expenses_init = 0;
-            }
-            expenses_init = parseFloat(expenses_init);
-
-            if (tax_val_init == '1') {
-                buy_init = buy_init_store;
-                buy_init = parseFloat(buy_init) + parseFloat(expenses_init);
-            } else {
-                buy_init = buy_init_store;
-                new_tax = (parseFloat(buy_init) / 100) * parseFloat(tax_val_init);
-                buy_init = parseFloat(parseFloat(buy_init)) + parseFloat(new_tax) + parseFloat(expenses_init);
-            }
-//            buy_init = buy_init + expenses_init;
-            $('input#sell').val(buy_init);
-            $('input#sell').closest('.form-group').addClass('is-focused');
-
-            if (buy_init_store > $('input#sell').val()) {
-                $('input#sell').addClass('loss');
-            } else if (buy_init_store == $('input#sell').val()) {
-                $('input#sell').removeClass('loss');
-            } else {
-                $('input#sell').removeClass('loss');
-            }
-        }
-
-//offer
-        function discount() {
-            var sell_elem = $('input#sell').val();
-            sell_elem = parseFloat(sell_elem);
-
-            if (offer_amount.val().length === 0) {
-                $('input#discounted').val("");
-            } else {
-                if (offer_type_init == '1') {
-                    new_off = (parseFloat(buy_init) / 100) * parseFloat(offer_amount_init);
-                    discount_value = parseFloat(sell_elem) - parseFloat(new_off);
-                } else if (offer_type_init == '2') {
-                    discount_value = parseFloat(sell_elem) - parseFloat(offer_amount_init);
-                }
-                $('input#discounted').closest('.form-group').addClass('is-focused');
-                $('input#discounted').val(discount_value);
-            }
-        }
-//offer
         get_microtime();
     });
-//selling price
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#blah').attr('src', e.target.result);
+                $('#blah').hide();
+                $('#blah').fadeIn(650);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    function show_matching_cats() {
+        var input, filter, ul, li, a, i;
+        input = document.getElementById("from-display-name");
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("category-ul-matching");
+        li = ul.getElementsByTagName("li");
+        for (i = 0; i < li.length; i++) {
+            a = li[i].getElementsByTagName("a")[0];
+            if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
 
+            }
+        }
+        var inputVal = $(event.target).val();
+        var search_name_details = {
+            search_name: inputVal
+        };
+        var search_name_details_obj = JSON.stringify(search_name_details);
+        if (inputVal.length) {
+            $.post('get_matching_img.php', {search_name_detailsJsonData: search_name_details_obj}, function (response) {
+                $('#image-suggest-loader').empty();
+                $('#image-suggest-loader').html(response);
+            });
+        } else {
+            $('#image-suggest-loader').empty();
+        }
+    }
+    function successfully_added() {
+        var color = 'green';
+        var icon = 'check';
+        var product_name = $('#from-display-name').val();
+        var msg = product_name + ' is successfully added';
+        push_notificatoin(color, icon, msg);
+        $('input.clear-after').val("");
+        $('input#imgInp').val("");
+        $('img#blah').attr('src', baseUrl + '/assets/img/placeholder-image.png');
+        $('.required').removeClass('validation-error');
+        var expenses = $('#expenses');
+        expenses.val('');
+        buy.val('');
+        buy_init = 0
+        offer_amount_init = 0
+        expenses_init = 0
+    }
+    function validation_error() {
+        var color = 'red';
+        var icon = 'times';
+        var msg = 'Please fill the required fields and submit';
+        push_notificatoin(color, icon, msg);
+        $('.required').addClass('validation-error');
+    }
+    function dupicate_validation_error() {
+        var color = 'red';
+        var icon = 'times';
+        var msg = 'Add a different product';
+        push_notificatoin(color, icon, msg);
+        $('.required').addClass('validation-error');
+    }
+    function large_file_error() {
+        var color = 'red';
+        var icon = 'times';
+        var msg = 'Image is too large';
+        push_notificatoin(color, icon, msg);
+    }
+    function productUpload() {
+        var name_required = $('.name-required');
+        var buy_required = $('.buy-required');
+        var sell_required = $('.sell-required');
+        var typed_cat_name = $('#from-display-name').val();
+        var date_required = $('.date-required');
+
+        if ((name_required.val().length > 0) && (sell_required.val().length > 0) && (buy_required.val().length > 0) && (date_required.val().trim() !== '')) {
+            $.ajax({
+                type: 'get',
+                url: 'add-products-call.php',
+                data: $('form').serialize(),
+                success: function (data) {
+                    console.log(data);
+                    stop_upload();
+                    successfully_added();
+                    get_microtime();
+                    $('#category-ul-matching').load(baseUrl + '/views/products/loop-products.php');
+                }
+            });
+            $('input#from-display-name').focus();
+            $('ul#category-ul-matching li').attr('style', '');
+        } else {
+            validation_error();
+        }
+    }
+    function imgUpload() {
+        var form = $('#fileUploadForm')[0];
+        var data = new FormData(form);
+        data.append("CustomField", "This is some extra data, testing");
+        $("#btnSubmit").prop("disabled", true);
+        start_upload();
+        $.ajax({
+            type: "POST",
+            enctype: 'multipart/form-data',
+            url: baseUrl + "/controllers/image_upload.php",
+            data: data,
+            processData: false,
+            contentType: false,
+            cache: false,
+            timeout: 60000,
+            success: function (data) {
+                $.ajax({
+                    type: "POST",
+                    url: "last_img_id.php",
+                    data: data,
+                    success: function (data)
+                    {
+                        var last_img_id = data;
+                        $('input#last_img_id').val($.trim(last_img_id));
+                        $.ajax({
+                            type: "POST",
+                            url: "../../uploads/imgOptimizer.php",
+                            data: data,
+                            success: function (data)
+                            {
+                                productUpload();
+                            }
+                        });
+                    }
+                });
+            },
+            error: function () {
+                alert("Check your internet connection. Maybe it's too slow");
+                stop_upload();
+            }
+        });
+    }
+    function sell() {
+        var buy_init_store = buy.val();
+        if (expenses_init == 0) {
+            expenses_init = 0;
+        }
+        expenses_init = parseFloat(expenses_init);
+
+        if (tax_val_init == '1') {
+            buy_init = buy_init_store;
+            buy_init = parseFloat(buy_init) + parseFloat(expenses_init);
+        } else {
+            buy_init = buy_init_store;
+            new_tax = (parseFloat(buy_init) / 100) * parseFloat(tax_val_init);
+            buy_init = parseFloat(parseFloat(buy_init)) + parseFloat(new_tax) + parseFloat(expenses_init);
+        }
+        $('input#sell').val(buy_init);
+        $('input#sell').closest('.form-group').addClass('is-focused');
+
+        if (buy_init_store > $('input#sell').val()) {
+            $('input#sell').addClass('loss');
+        } else if (buy_init_store == $('input#sell').val()) {
+            $('input#sell').removeClass('loss');
+        } else {
+            $('input#sell').removeClass('loss');
+        }
+    }
+    function discount() {
+        var sell_elem = $('input#sell').val();
+        sell_elem = parseFloat(sell_elem);
+
+        if (offer_amount.val().length === 0) {
+            $('input#discounted').val("");
+        } else {
+            if (offer_type_init == '1') {
+                new_off = (parseFloat(buy_init) / 100) * parseFloat(offer_amount_init);
+                discount_value = parseFloat(sell_elem) - parseFloat(new_off);
+            } else if (offer_type_init == '2') {
+                discount_value = parseFloat(sell_elem) - parseFloat(offer_amount_init);
+            }
+            $('input#discounted').closest('.form-group').addClass('is-focused');
+            $('input#discounted').val(discount_value);
+        }
+    }
     function select_product_img() {
         var selected_img = $(event.target);
         var selected_img_id = selected_img.attr('id');
         var selected_img_src = selected_img.attr('src');
         $('div#img_contain > img#blah').attr('src', selected_img_src);
         $('input#last_img_id').val(selected_img_id);
-//        alert(selected_img_src);
     }
-
     function get_microtime() {
         $.ajax({
             url: baseUrl + '/inc/microtime.php',
             success: function (data) {
                 $('.code_field').closest('.form-group.label-floating').removeClass('is-empty');
                 $('.code_field').val(data);
-//                console.log(data);
             }
         });
     }
